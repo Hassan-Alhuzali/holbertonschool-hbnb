@@ -35,7 +35,12 @@ class HBnBFacade:
 
     # ---------- User (needed for Place owner) ----------
     def create_user(self, user_data):
-        user = User(**user_data)
+        # Extract password before passing remaining fields to the constructor
+        data = dict(user_data)
+        password = data.pop('password', None)
+        user = User(**data)
+        if password:
+            user.hash_password(password)
         self.user_repo.add(user)
         return user
 

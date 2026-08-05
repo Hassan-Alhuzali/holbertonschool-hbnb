@@ -12,6 +12,7 @@ class User(BaseModel):
         self.last_name = last_name
         self.email = email
         self.is_admin = is_admin
+        self.password = None  # stores the hashed password
 
     @property
     def first_name(self):
@@ -42,6 +43,16 @@ class User(BaseModel):
         if not value or not re.match(r"[^@]+@[^@]+\.[^@]+", value):
             raise ValueError("Invalid email format")
         self._email = value
+
+    def hash_password(self, password):
+        """Hashes the password before storing it."""
+        from app import bcrypt
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    def verify_password(self, password):
+        """Verifies if the provided password matches the hashed password."""
+        from app import bcrypt
+        return bcrypt.check_password_hash(self.password, password)
 
     def __str__(self):
         """Returns a string representation of the user."""

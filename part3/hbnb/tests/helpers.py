@@ -21,12 +21,14 @@ def unique_email():
     return f"user.{unique_suffix()}@example.com"
 
 
-def create_user(client, first_name="Test", last_name="User", email=None):
+def create_user(client, first_name="Test", last_name="User", email=None,
+                password="TestPass1!"):
     """Create a user via the API and return (response, json_body)."""
     payload = {
         "first_name": first_name,
         "last_name": last_name,
         "email": email or unique_email(),
+        "password": password,
     }
     response = client.post("/api/v1/users/", json=payload)
     return response, response.get_json()
