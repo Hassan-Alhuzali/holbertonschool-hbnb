@@ -1,14 +1,22 @@
 from flask_restx import Namespace, Resource, fields  # pyright: ignore[reportMissingImports]
+from flask_jwt_extended import jwt_required, get_jwt_identity  # pyright: ignore[reportMissingImports]
 from app.services import facade
 
 api = Namespace('users', description='User operations')
 
-# Define the user model for input validation and documentation
+# Model for user creation (POST) – email and password are required.
 user_model = api.model('User', {
     'first_name': fields.String(required=True, description='First name of the user'),
     'last_name': fields.String(required=True, description='Last name of the user'),
     'email': fields.String(required=True, description='Email of the user'),
     'password': fields.String(required=True, description='Password of the user'),
+})
+
+# Model for user update (PUT) – only name fields are accepted; email and
+# password cannot be changed through this endpoint.
+user_update_model = api.model('UserUpdate', {
+    'first_name': fields.String(description='First name of the user'),
+    'last_name': fields.String(description='Last name of the user'),
 })
 
 
@@ -32,7 +40,6 @@ class UserList(Resource):
         """Register a new user"""
         user_data = api.payload
 
-        # Simulate email uniqueness check (to be replaced by real validation with persistence)
         existing_user = facade.get_user_by_email(user_data['email'])
         if existing_user:
             return {'error': 'Email already registered'}, 400
@@ -61,24 +68,30 @@ class UserResource(Resource):
             return {'error': 'User not found'}, 404
         return _user_response(user), 200
 
-    @api.expect(user_model, validate=True)
+    @jwt_required()
+    @api.expect(user_update_model, validate=True)
     @api.response(200, 'User updated successfully')
+    @api.response(400, 'You cannot modify email or password')
+    @api.response(401, 'Authentication required')
+    @api.response(403, 'Unauthorized action')
     @api.response(404, 'User not found')
-    @api.response(400, 'Email already registered')
-    @api.response(400, 'Invalid input data')
     def put(self, user_id):
-        """Update a user's information"""
+        """Update a user's information (self only; email and password are read-only)"""
+        current_user = get_jwt_identity()
+
+        # Users may only modify their own records.
+        if current_user != user_id:
+            return {'error': 'Unauthorized action'}, 403
+
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
+
         user_data = api.payload
 
-        # Email must stay unique across users, excluding the user being updated
-        new_email = user_data.get('email')
-        if new_email:
-            existing_user = facade.get_user_by_email(new_email)
-            if existing_user and existing_user.id != user_id:
-                return {'error': 'Email already registered'}, 400
+        # Explicitly block attempts to change email or password through this endpoint.
+        if 'email' in user_data or 'password' in user_data:
+            return {'error': 'You cannot modify email or password'}, 400
 
         try:
             updated_user = facade.update_user(user_id, user_data)
