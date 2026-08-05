@@ -8,7 +8,7 @@ Covers:
 import unittest
 
 from app import create_app
-from tests.helpers import create_user, unique_email
+from tests.helpers import create_user_direct, login_user, unique_email
 
 
 PASSWORD = "TestPass1!"
@@ -25,9 +25,9 @@ class TestAuthLogin(unittest.TestCase):
     # ------------------------------------------------------------------
 
     def _register_and_login(self, password=PASSWORD):
-        """Create a user and return their JWT access token."""
+        """Create a user via the facade and return their JWT access token."""
         email = unique_email()
-        create_user(self.client, email=email, password=password)
+        create_user_direct(self.app, email=email, password=password)
         response = self.client.post("/api/v1/auth/login", json={
             "email": email,
             "password": password,
@@ -61,7 +61,7 @@ class TestAuthLogin(unittest.TestCase):
     def test_login_wrong_password_returns_401(self):
         """A wrong password must result in HTTP 401."""
         email = unique_email()
-        create_user(self.client, email=email, password=PASSWORD)
+        create_user_direct(self.app, email=email, password=PASSWORD)
         response = self.client.post("/api/v1/auth/login", json={
             "email": email,
             "password": "WrongPassword!",
@@ -131,8 +131,8 @@ class TestAuthLogin(unittest.TestCase):
     def test_protected_response_contains_user_id(self):
         """The protected endpoint must echo back the authenticated user's id."""
         email = unique_email()
-        _, created = create_user(self.client, email=email, password=PASSWORD)
-        user_id = created["id"]
+        user_dict, _ = create_user_direct(self.app, email=email, password=PASSWORD)
+        user_id = user_dict["id"]
 
         login_resp = self.client.post("/api/v1/auth/login", json={
             "email": email,

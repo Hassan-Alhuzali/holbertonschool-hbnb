@@ -57,9 +57,13 @@ class HBnBFacade:
         user = self.user_repo.get(user_id)
         if not user:
             return None
+        # Handle password separately: it must be hashed, not set via setattr.
+        if 'password' in user_data:
+            user.hash_password(user_data['password'])
         allowed = {k: v for k, v in user_data.items()
                    if k in ['first_name', 'last_name', 'email']}
-        self.user_repo.update(user_id, allowed)
+        if allowed:
+            self.user_repo.update(user_id, allowed)
         return user
 
     # ---------- Place ----------

@@ -1,10 +1,10 @@
 from flask_restx import Namespace, Resource, fields  # pyright: ignore[reportMissingImports]
-from flask_jwt_extended import jwt_required, get_jwt_identity  # pyright: ignore[reportMissingImports]
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt  # pyright: ignore[reportMissingImports]
 from app.services import facade
 
 api = Namespace('users', description='User operations')
 
-# Model for user creation (POST) – email and password are required.
+# Model for user creation (POST) – all fields required.
 user_model = api.model('User', {
     'first_name': fields.String(required=True, description='First name of the user'),
     'last_name': fields.String(required=True, description='Last name of the user'),
@@ -12,11 +12,13 @@ user_model = api.model('User', {
     'password': fields.String(required=True, description='Password of the user'),
 })
 
-# Model for user update (PUT) – only name fields are accepted; email and
-# password cannot be changed through this endpoint.
-user_update_model = api.model('UserUpdate', {
+# Model for user update (PUT).
+# Admins may supply email and password; non-admins are blocked in endpoint logic.
+user_put_model = api.model('UserPut', {
     'first_name': fields.String(description='First name of the user'),
     'last_name': fields.String(description='Last name of the user'),
+    'email': fields.String(description='Email of the user (admin only)'),
+    'password': fields.String(description='Password of the user (admin only)'),
 })
 
 
@@ -32,12 +34,19 @@ def _user_response(user):
 
 @api.route('/')
 class UserList(Resource):
+    @jwt_required()
     @api.expect(user_model, validate=True)
     @api.response(201, 'User successfully created')
     @api.response(400, 'Email already registered')
     @api.response(400, 'Invalid input data')
+    @api.response(401, 'Authentication required')
+    @api.response(403, 'Admin privileges required')
     def post(self):
-        """Register a new user"""
+        """Register a new user (admin only)"""
+        claims = get_jwt()
+        if not claims.get('is_admin', False):
+            return {'error': 'Admin privileges required'}, 403
+
         user_data = api.payload
 
         existing_user = facade.get_user_by_email(user_data['email'])
@@ -69,18 +78,20 @@ class UserResource(Resource):
         return _user_response(user), 200
 
     @jwt_required()
-    @api.expect(user_update_model, validate=True)
+    @api.expect(user_put_model, validate=True)
     @api.response(200, 'User updated successfully')
-    @api.response(400, 'You cannot modify email or password')
+    @api.response(400, 'Invalid input data')
     @api.response(401, 'Authentication required')
     @api.response(403, 'Unauthorized action')
     @api.response(404, 'User not found')
     def put(self, user_id):
-        """Update a user's information (self only; email and password are read-only)"""
-        current_user = get_jwt_identity()
+        """Update a user's information (own record for regular users; any record for admins)"""
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
+        current_user_id = get_jwt_identity()
 
-        # Users may only modify their own records.
-        if current_user != user_id:
+        # Non-admins may only modify their own record.
+        if not is_admin and current_user_id != user_id:
             return {'error': 'Unauthorized action'}, 403
 
         user = facade.get_user(user_id)
@@ -89,9 +100,16 @@ class UserResource(Resource):
 
         user_data = api.payload
 
-        # Explicitly block attempts to change email or password through this endpoint.
-        if 'email' in user_data or 'password' in user_data:
-            return {'error': 'You cannot modify email or password'}, 400
+        if not is_admin:
+            # Non-admins cannot change email or password through this endpoint.
+            if 'email' in user_data or 'password' in user_data:
+                return {'error': 'You cannot modify email or password'}, 400
+        else:
+            # Admins may change email, but must keep it unique.
+            if 'email' in user_data:
+                existing = facade.get_user_by_email(user_data['email'])
+                if existing and existing.id != user_id:
+                    return {'error': 'Email already in use'}, 400
 
         try:
             updated_user = facade.update_user(user_id, user_data)

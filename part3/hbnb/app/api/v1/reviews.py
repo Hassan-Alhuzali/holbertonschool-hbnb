@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource, fields  # pyright: ignore[reportMissingImports]
-from flask_jwt_extended import jwt_required, get_jwt_identity  # pyright: ignore[reportMissingImports]
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt  # pyright: ignore[reportMissingImports]
 from app.services import facade
 
 api = Namespace('reviews', description='Review operations')
@@ -89,13 +89,18 @@ class ReviewResource(Resource):
     @api.response(403, 'Unauthorized action')
     @api.response(404, 'Review not found')
     def put(self, review_id):
-        """Update a review (original reviewer only)"""
-        current_user = get_jwt_identity()
+        """Update a review (original reviewer only; admins bypass ownership check)"""
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
+        current_user_id = get_jwt_identity()
+
         review = facade.get_review(review_id)
         if not review:
             return {'error': 'Review not found'}, 404
-        if review.user.id != current_user:
+
+        if not is_admin and review.user.id != current_user_id:
             return {'error': 'Unauthorized action'}, 403
+
         review_data = api.payload
         try:
             facade.update_review(review_id, review_data)
@@ -109,12 +114,17 @@ class ReviewResource(Resource):
     @api.response(403, 'Unauthorized action')
     @api.response(404, 'Review not found')
     def delete(self, review_id):
-        """Delete a review (original reviewer only)"""
-        current_user = get_jwt_identity()
+        """Delete a review (original reviewer only; admins bypass ownership check)"""
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
+        current_user_id = get_jwt_identity()
+
         review = facade.get_review(review_id)
         if not review:
             return {'error': 'Review not found'}, 404
-        if review.user.id != current_user:
+
+        if not is_admin and review.user.id != current_user_id:
             return {'error': 'Unauthorized action'}, 403
+
         facade.delete_review(review_id)
         return {'message': 'Review deleted successfully'}, 200

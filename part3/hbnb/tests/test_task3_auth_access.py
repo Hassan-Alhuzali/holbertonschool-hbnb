@@ -36,8 +36,8 @@ class TestPlaceAuthAccess(unittest.TestCase):
     def setUp(self):
         self.app = create_app()
         self.client = self.app.test_client()
-        self.owner, self.owner_token = create_user_and_login(self.client)
-        self.other, self.other_token = create_user_and_login(self.client)
+        self.owner, self.owner_token = create_user_and_login(self.client, self.app)
+        self.other, self.other_token = create_user_and_login(self.client, self.app)
 
     # ------------------------------------------------------------------
     # POST /api/v1/places/
@@ -110,9 +110,9 @@ class TestReviewAuthAccess(unittest.TestCase):
     def setUp(self):
         self.app = create_app()
         self.client = self.app.test_client()
-        self.owner, self.owner_token = create_user_and_login(self.client)
-        self.reviewer, self.reviewer_token = create_user_and_login(self.client)
-        self.other, self.other_token = create_user_and_login(self.client)
+        self.owner, self.owner_token = create_user_and_login(self.client, self.app)
+        self.reviewer, self.reviewer_token = create_user_and_login(self.client, self.app)
+        self.other, self.other_token = create_user_and_login(self.client, self.app)
         _, self.place = create_place(self.client, self.owner_token)
 
     # ------------------------------------------------------------------
@@ -242,8 +242,8 @@ class TestUserAuthAccess(unittest.TestCase):
     def setUp(self):
         self.app = create_app()
         self.client = self.app.test_client()
-        self.user_a, self.token_a = create_user_and_login(self.client)
-        self.user_b, self.token_b = create_user_and_login(self.client)
+        self.user_a, self.token_a = create_user_and_login(self.client, self.app)
+        self.user_b, self.token_b = create_user_and_login(self.client, self.app)
 
     # ------------------------------------------------------------------
     # PUT /api/v1/users/<id>
@@ -278,7 +278,7 @@ class TestUserAuthAccess(unittest.TestCase):
         self.assertEqual(response.get_json()["error"], "Unauthorized action")
 
     def test_update_user_email_is_rejected(self):
-        """Including 'email' in the PUT body must return 400."""
+        """Including 'email' in the PUT body must return 400 for regular users."""
         response = self.client.put(f"/api/v1/users/{self.user_a['id']}", json={
             "first_name": "John",
             "email": "changed@example.com",
@@ -288,7 +288,7 @@ class TestUserAuthAccess(unittest.TestCase):
                           "You cannot modify email or password")
 
     def test_update_user_password_is_rejected(self):
-        """Including 'password' in the PUT body must return 400."""
+        """Including 'password' in the PUT body must return 400 for regular users."""
         response = self.client.put(f"/api/v1/users/{self.user_a['id']}", json={
             "first_name": "John",
             "password": "NewPassword99!",

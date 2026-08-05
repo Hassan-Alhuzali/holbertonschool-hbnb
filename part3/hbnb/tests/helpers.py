@@ -7,6 +7,14 @@ shares the same storage and there is no endpoint to delete users, places,
 or amenities. To keep tests independent of each other (and of execution
 order), every helper here generates unique attribute values (emails,
 names, titles) instead of relying on fixed fixtures.
+
+Admin bootstrap
+---------------
+Since POST /api/v1/users/ is admin-only, test setup cannot create users
+through the public API.  Use ``create_user_direct`` or
+``create_user_and_login`` (which accepts the Flask ``app`` instance and
+creates the user directly via the facade) for test infrastructure, and
+``create_user`` (API call) only when testing the endpoint itself.
 """
 
 import uuid
@@ -21,18 +29,42 @@ def unique_email():
     return f"user.{unique_suffix()}@example.com"
 
 
-def create_user(client, first_name="Test", last_name="User", email=None,
-                password="TestPass1!"):
-    """Create a user via the API and return (response, json_body)."""
-    payload = {
-        "first_name": first_name,
-        "last_name": last_name,
-        "email": email or unique_email(),
-        "password": password,
-    }
-    response = client.post("/api/v1/users/", json=payload)
-    return response, response.get_json()
+# ---------------------------------------------------------------------------
+# Low-level facade helpers (bypass the API – useful for test setup)
+# ---------------------------------------------------------------------------
 
+def create_user_direct(app, first_name="Test", last_name="User", email=None,
+                       password="TestPass1!", is_admin=False):
+    """Create a user directly via the facade, bypassing the JWT-protected API.
+
+    Returns ``({'id': ...}, email)`` so callers can log in afterwards.
+    """
+    from app.services import facade
+    email = email or unique_email()
+    user = facade.create_user({
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email,
+        'password': password,
+        'is_admin': is_admin,
+    })
+    return {'id': user.id}, email
+
+
+def create_amenity_direct(app, name=None):
+    """Create an amenity directly via the facade, bypassing the JWT-protected API.
+
+    Returns ``{'id': ..., 'name': ...}``.
+    """
+    from app.services import facade
+    name = name or f"Amenity-{unique_suffix()}"
+    amenity = facade.create_amenity({'name': name})
+    return {'id': amenity.id, 'name': amenity.name}
+
+
+# ---------------------------------------------------------------------------
+# Auth helper
+# ---------------------------------------------------------------------------
 
 def login_user(client, email, password="TestPass1!"):
     """Log in with the given credentials and return the JWT access token."""
@@ -43,24 +75,67 @@ def login_user(client, email, password="TestPass1!"):
     return response.get_json().get("access_token")
 
 
-def create_user_and_login(client, first_name="Test", last_name="User",
+# ---------------------------------------------------------------------------
+# Combined helpers
+# ---------------------------------------------------------------------------
+
+def create_user_and_login(client, app, first_name="Test", last_name="User",
                           password="TestPass1!"):
-    """Create a user, log them in, and return (user_dict, token).
+    """Create a regular user via the facade, log them in, and return (user_dict, token).
 
-    The returned ``user_dict`` includes an ``'email'`` key so callers can
-    log in again if needed (the POST response body does not include email).
+    The returned ``user_dict`` contains ``'id'`` and ``'email'``.
     """
-    email = unique_email()
-    _, user = create_user(client, first_name=first_name, last_name=last_name,
-                          email=email, password=password)
+    user_dict, email = create_user_direct(app, first_name=first_name,
+                                          last_name=last_name, password=password)
     token = login_user(client, email, password)
-    user['email'] = email
-    return user, token
+    user_dict['email'] = email
+    return user_dict, token
 
 
-def create_amenity(client, name=None):
+def create_admin_and_login(client, app, password="AdminPass1!"):
+    """Create an admin user via the facade, log them in, and return (admin_dict, token).
+
+    The returned ``admin_dict`` contains ``'id'`` and ``'email'``.
+    """
+    user_dict, email = create_user_direct(app, first_name="Admin", last_name="Admin",
+                                           password=password, is_admin=True)
+    token = login_user(client, email, password)
+    user_dict['email'] = email
+    return user_dict, token
+
+
+# ---------------------------------------------------------------------------
+# API-level helpers (require appropriate tokens)
+# ---------------------------------------------------------------------------
+
+def create_user(client, first_name="Test", last_name="User", email=None,
+                password="TestPass1!", admin_token=None):
+    """Create a user via the API (POST /api/v1/users/).
+
+    Since this endpoint is admin-only, ``admin_token`` must be provided for a
+    successful 201 response.  Omit it to test the 401/403 error paths.
+    """
+    payload = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email or unique_email(),
+        "password": password,
+    }
+    headers = {}
+    if admin_token:
+        headers["Authorization"] = f"Bearer {admin_token}"
+    response = client.post("/api/v1/users/", json=payload, headers=headers)
+    return response, response.get_json()
+
+
+def create_amenity(client, admin_token, name=None):
+    """Create an amenity via the API (POST /api/v1/amenities/).
+
+    Requires an admin JWT token.
+    """
     payload = {"name": name or f"Amenity-{unique_suffix()}"}
-    response = client.post("/api/v1/amenities/", json=payload)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    response = client.post("/api/v1/amenities/", json=payload, headers=headers)
     return response, response.get_json()
 
 

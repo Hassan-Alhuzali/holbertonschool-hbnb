@@ -10,8 +10,8 @@ class TestReviewEndpoints(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client()
         # Two users: the place owner and a separate reviewer.
-        self.owner, self.owner_token = create_user_and_login(self.client)
-        self.reviewer, self.reviewer_token = create_user_and_login(self.client)
+        self.owner, self.owner_token = create_user_and_login(self.client, self.app)
+        self.reviewer, self.reviewer_token = create_user_and_login(self.client, self.app)
         _, self.place = create_place(self.client, self.owner_token)
 
     # ---------- POST /api/v1/reviews/ ----------

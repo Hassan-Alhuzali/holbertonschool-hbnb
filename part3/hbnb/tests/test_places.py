@@ -1,7 +1,12 @@
 import unittest
 
 from app import create_app
-from tests.helpers import create_user_and_login, create_place, create_amenity
+from tests.helpers import (
+    create_admin_and_login,
+    create_user_and_login,
+    create_amenity,
+    create_place,
+)
 
 
 class TestPlaceEndpoints(unittest.TestCase):
@@ -9,8 +14,10 @@ class TestPlaceEndpoints(unittest.TestCase):
     def setUp(self):
         self.app = create_app()
         self.client = self.app.test_client()
-        # Create a user and obtain a JWT so we can call authenticated endpoints.
-        self.owner, self.owner_token = create_user_and_login(self.client)
+        # Admin needed to create amenities.
+        self.admin, self.admin_token = create_admin_and_login(self.client, self.app)
+        # Regular user who will own places.
+        self.owner, self.owner_token = create_user_and_login(self.client, self.app)
 
     # ---------- POST /api/v1/places/ ----------
 
@@ -120,7 +127,7 @@ class TestPlaceEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_create_place_with_valid_amenity(self):
-        _, amenity = create_amenity(self.client)
+        _, amenity = create_amenity(self.client, self.admin_token)
         response, body = create_place(self.client, self.owner_token,
                                        amenities=[amenity["id"]])
         self.assertEqual(response.status_code, 201)
@@ -136,7 +143,7 @@ class TestPlaceEndpoints(unittest.TestCase):
     # ---------- GET /api/v1/places/<id> (public) ----------
 
     def test_get_place_by_id_includes_owner_and_amenities(self):
-        _, amenity = create_amenity(self.client)
+        _, amenity = create_amenity(self.client, self.admin_token)
         _, created = create_place(self.client, self.owner_token,
                                    amenities=[amenity["id"]])
         response = self.client.get(f"/api/v1/places/{created['id']}")
