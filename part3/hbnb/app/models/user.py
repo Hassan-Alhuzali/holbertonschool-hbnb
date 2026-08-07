@@ -1,9 +1,23 @@
-import re
+﻿import re
+
+from app import db
 from app.models.base_model import BaseModel
 
 
 class User(BaseModel):
     """Represents a user in the system."""
+
+    __tablename__ = 'users'
+
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(128), nullable=True)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    places = db.relationship('Place', back_populates='owner', lazy=True,
+                             cascade='all, delete-orphan')
+    reviews = db.relationship('Review', back_populates='user', lazy=True,
+                              cascade='all, delete-orphan')
 
     def __init__(self, first_name, last_name, email, is_admin=False):
         """Initializes a new User instance."""

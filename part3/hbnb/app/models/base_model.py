@@ -1,26 +1,32 @@
-import uuid
+﻿import uuid
 from datetime import datetime
 
+from app import db
 
-class BaseModel:
+
+class BaseModel(db.Model):
     """Base class for all models in the system."""
 
-    def __init__(self):
-        self.id = self.generate_id()
-        self.created_at = self.get_current_time()
-        self.updated_at = self.get_current_time()
+    __abstract__ = True
 
-    def generate_id(self):
-        """Generate a unique ID for the model."""
-        return str(uuid.uuid4())
+    id = db.Column(db.String(60), primary_key=True, nullable=False,
+                   default=lambda: str(uuid.uuid4()))
+    created_at = db.Column(db.DateTime, nullable=False,
+                           default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False,
+                           default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    def get_current_time(self):
-        """Get the current time."""
-        return datetime.now()
+    def __init__(self, *args, **kwargs):
+        self.id = str(uuid.uuid4())
+        self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
+        super().__init__(*args, **kwargs)
 
     def save(self):
         """Save the model to the database."""
-        self.updated_at = self.get_current_time()
+        self.updated_at = datetime.utcnow()
+        db.session.add(self)
+        db.session.commit()
 
     def update(self, data):
         """Update the model with the given data.

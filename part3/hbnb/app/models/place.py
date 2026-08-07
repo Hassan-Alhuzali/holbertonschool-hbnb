@@ -1,8 +1,30 @@
+﻿from app import db
 from app.models.base_model import BaseModel
 from app.models.user import User
 
+place_amenity = db.Table(
+    'place_amenity',
+    db.Column('place_id', db.String(60), db.ForeignKey('places.id'), primary_key=True),
+    db.Column('amenity_id', db.String(60), db.ForeignKey('amenities.id'), primary_key=True)
+)
+
+
 class Place(BaseModel):
     """Represents a place in the system."""
+
+    __tablename__ = 'places'
+
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False, default='')
+    price = db.Column(db.Float, nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    owner_id = db.Column(db.String(60), db.ForeignKey('users.id'), nullable=False)
+    owner = db.relationship('User', back_populates='places', lazy=True)
+    reviews = db.relationship('Review', back_populates='place', lazy=True,
+                              cascade='all, delete-orphan')
+    amenities = db.relationship('Amenity', secondary=place_amenity,
+                                back_populates='places', lazy='subquery')
 
     def __init__(self, title, description, price, latitude, longitude, owner):
         """Initializes a new Place instance."""
@@ -11,12 +33,10 @@ class Place(BaseModel):
             raise ValueError("owner must be a User instance")
         self.owner = owner
         self.title = title
-        self.description = description
+        self.description = '' if description is None else description
         self.price = price
         self.latitude = latitude
         self.longitude = longitude
-        self.reviews = []
-        self.amenities = []
 
     @property
     def title(self):
