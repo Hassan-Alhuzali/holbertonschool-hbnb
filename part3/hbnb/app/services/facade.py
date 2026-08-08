@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+from app.models.amenity import Amenity
+>>>>>>> a0cb86aa3f9ff58668ee8f970e679dd650ac27fe
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
