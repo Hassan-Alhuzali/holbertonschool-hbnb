@@ -1,23 +1,15 @@
+from app import db
 from app.models.base_model import BaseModel
-
+from sqlalchemy.orm import validates
 
 class Amenity(BaseModel):
-    """Represents an amenity available for a place."""
+    __tablename__ = 'amenities'
 
-    def __init__(self, name):
-        """Initialize an Amenity with a name."""
-        super().__init__()
-        self.name = name
+    name = db.Column(db.String(128), nullable=False)
 
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
+    @validates('name')
+    def validate_name(self, key, value):
         if not value or len(value) > 50:
             raise ValueError("Amenity name is required and must be less than 50 characters")
-        self._name = value
+        return value
 
-    def __str__(self):
-        return f"Amenity({self.name})"
