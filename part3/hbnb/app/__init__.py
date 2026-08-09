@@ -1,31 +1,20 @@
 from flask import Flask
-<<<<<<< HEAD
 from flask_restx import Api
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
-from flask_sqlalchemy import SQLAlchemy
 import config
-=======
-from flask_restx import Api  # pyright: ignore[reportMissingImports]
-from flask_bcrypt import Bcrypt  # pyright: ignore[reportMissingImports]
-from flask_jwt_extended import JWTManager  # pyright: ignore[reportMissingImports]
-from flask_sqlalchemy import SQLAlchemy
-
-import config
-
-
-bcrypt = Bcrypt()
-jwt = JWTManager()
-db = SQLAlchemy()
-
+from app.extensions import db, bcrypt, jwt
 
 from app.api.v1.users import api as users_ns
-from app.api.v1.amenities import api as amenities_ns
+from app.api.v1.amenities import api as amenities_ns  
 from app.api.v1.places import api as places_ns
 from app.api.v1.reviews import api as reviews_ns
 from app.api.v1.auth import api as auth_ns
->>>>>>> a0cb86aa3f9ff58668ee8f970e679dd650ac27fe
 
+api = Api(
+    version='1.0',
+    title='HBnB API',
+    description='HBnB Application API',
+    doc='/api/v1/'
+)
 
 def create_app(config_class=config.DevelopmentConfig):
     app = Flask(__name__)
@@ -34,28 +23,8 @@ def create_app(config_class=config.DevelopmentConfig):
     db.init_app(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
-<<<<<<< HEAD
-    from app.api.v1.users import api as users_ns
-    api = Api(app, version='1.0', title='HBnB API',
-              description='HBnB Application API', doc='/api/v1/')
     
-    
-    from app.api.v1.users import api as users_ns
-    from app.api.v1.amenities import api as amenities_ns  
-    from app.api.v1.places import api as places_ns
-    from app.api.v1.reviews import api as reviews_ns
-    from app.api.v1.auth import api as auth_ns
-
-=======
->>>>>>> a0cb86aa3f9ff58668ee8f970e679dd650ac27fe
-
-    api = Api(
-        app,
-        version='1.0',
-        title='HBnB API',
-        description='HBnB Application API',
-        doc='/api/v1/'
-    )
+    api.init_app(app)
 
     api.add_namespace(users_ns, path='/api/v1/users')
     api.add_namespace(amenities_ns, path='/api/v1/amenities')
