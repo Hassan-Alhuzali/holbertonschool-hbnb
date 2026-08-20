@@ -1,17 +1,15 @@
-from app.persistence.repository import UserRepository
+from app.persistence.repository import UserRepository, PlaceRepository, ReviewRepository, AmenityRepository
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
 from app.models.amenity import Amenity
-from app.persistence.repository import SQLAlchemyRepository 
 
 class HBnBFacade:
     def __init__(self):
         self.user_repo = UserRepository()
-        self.place_repo = SQLAlchemyRepository(Place)
-        self.review_repo = SQLAlchemyRepository(Review)
-        self.amenity_repo = SQLAlchemyRepository(Amenity)
-
+        self.place_repo = PlaceRepository()
+        self.review_repo = ReviewRepository()
+        self.amenity_repo = AmenityRepository()
 
     # ---------- Amenity ----------
     def create_amenity(self, amenity_data):
@@ -36,10 +34,9 @@ class HBnBFacade:
 
     # ---------- User (needed for Place owner) ----------
     def create_user(self, user_data):
-        # Extract password before passing remaining fields to the constructor
         data = dict(user_data)
         password = data.pop('password', None)
-        user = User(**user_data)    
+        user = User(**data)    
         if password:
             user.hash_password(password)
         self.user_repo.add(user)
@@ -52,13 +49,12 @@ class HBnBFacade:
         return self.user_repo.get_all()
 
     def get_user_by_email(self, email):
-        return self.user_repo.get_user_by_email(email)
+        return self.user_repo.get_by_email(email)
 
     def update_user(self, user_id, user_data):
         user = self.user_repo.get(user_id)
         if not user:
             return None
-        # Handle password separately: it must be hashed, not set via setattr.
         if 'password' in user_data:
             user.hash_password(user_data['password'])
         allowed = {k: v for k, v in user_data.items()
@@ -90,8 +86,10 @@ class HBnBFacade:
             longitude=place_data['longitude'],
             owner=owner
         )
+        
+
         for amenity in amenity_objs:
-            place.add_amenity(amenity)
+            place.amenities.append(amenity)
 
         self.place_repo.add(place)
         return place
@@ -127,8 +125,9 @@ class HBnBFacade:
             place=place,
             user=user
         )
+        
         self.review_repo.add(review)
-        place.add_review(review)
+        # لا حاجة لـ place.add_review(review) لأن SQLAlchemy يتعرف على العلاقة تلقائياً من خلال backref
         return review
 
     def get_review(self, review_id):
@@ -156,7 +155,5 @@ class HBnBFacade:
         review = self.review_repo.get(review_id)
         if not review:
             return None
-        if review in review.place.reviews:
-            review.place.reviews.remove(review)
         self.review_repo.delete(review_id)
         return review
