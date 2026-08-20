@@ -1,4 +1,4 @@
-from app import db
+from app.extensions import db
 from app.models.base_model import BaseModel
 from sqlalchemy.orm import validates
 
@@ -7,6 +7,8 @@ class Review(BaseModel):
 
     text = db.Column(db.String(1024), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
+    place_id =db.Column(db.String(60), db.ForeignKey('places.id'), nullable=False)
+    user_id = db.Column(db.String(60), db.ForeignKey('users.id'), nullable=False)
 
     @validates('text')
     def validate_text(self, key, value):

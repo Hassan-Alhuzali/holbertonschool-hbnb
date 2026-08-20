@@ -1,9 +1,10 @@
-from app import db
+from app.extensions import db
 from app.models.base_model import BaseModel
 from sqlalchemy.orm import validates
 
-place_amenity = db.Table(
-    'place_amenity',
+
+
+place_amenity = db.Table( 'place_amenity',
     db.Column('place_id', db.String(60), db.ForeignKey('places.id'), primary_key=True),
     db.Column('amenity_id', db.String(60), db.ForeignKey('amenities.id'), primary_key=True)
 )
@@ -17,6 +18,10 @@ class Place(BaseModel):
     price = db.Column(db.Float, nullable=False)
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
+    owner_id = db.column (db.String(60), db.Foreigenkey('users.id'), nullable=False)
+    reviews = db.relationship('Review', backref='place', lazy=True, cascade='all, delete-orphan')
+    amenities = db.relationship('Amenity', secondary=place_amenity, backref=db.backref('places', lazy=True))
+
 
     @validates('title')
     def validate_title(self, key, value):
