@@ -49,18 +49,29 @@ class HBnBFacade:
         return self.user_repo.get_all()
 
     def get_user_by_email(self, email):
-        return self.user_repo.get_by_email(email)
+        """Fetch a user by their email using the generic attribute search."""
+        return self.user_repo.get_by_attribute('email', email)
 
     def update_user(self, user_id, user_data):
+        """Update user details and ensure password changes trigger a repository commit."""
         user = self.user_repo.get(user_id)
         if not user:
             return None
+        is_password_changed = False
+
         if 'password' in user_data:
             user.hash_password(user_data['password'])
+            is_password_changed = True
+
         allowed = {k: v for k, v in user_data.items()
                    if k in ['first_name', 'last_name', 'email']}
+        # Trigger update if standard fields are changed, OR if only password was changed
         if allowed:
             self.user_repo.update(user_id, allowed)
+        elif is_password_changed:
+            # Force a commit for the password change even if allowed dict is empty
+            self.user_repo.update(user_id, {})
+            
         return user
 
     # ---------- Place ----------
@@ -127,7 +138,6 @@ class HBnBFacade:
         )
         
         self.review_repo.add(review)
-        # لا حاجة لـ place.add_review(review) لأن SQLAlchemy يتعرف على العلاقة تلقائياً من خلال backref
         return review
 
     def get_review(self, review_id):

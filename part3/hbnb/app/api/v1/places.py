@@ -131,7 +131,11 @@ class PlaceResource(Resource):
         if not place:
             return {'error': 'Place not found'}, 404
 
-        if not is_admin and place.owner.id != current_user_id:
+        # Safely get the owner_id directly from the object attributes 
+        # to avoid missing ORM relationship errors during testing
+        owner_id = getattr(place, 'owner_id', getattr(place, 'user_id', None))
+
+        if not is_admin and owner_id != current_user_id:
             return {'error': 'Unauthorized action'}, 403
 
         place_data = api.payload
@@ -139,6 +143,7 @@ class PlaceResource(Resource):
             facade.update_place(place_id, place_data)
         except ValueError as e:
             return {'error': str(e)}, 400
+            
         return {'message': 'Place updated successfully'}, 200
 
 

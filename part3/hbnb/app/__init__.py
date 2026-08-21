@@ -23,14 +23,25 @@ def create_app(config_class=config.DevelopmentConfig):
     bcrypt.init_app(app)
     jwt.init_app(app)
 
+    @app.route('/')
+    def index():
+        return {"status": "success", "message": "Welcome to the HBnB API"}, 200
     api.init_app(app)
+
+    api = Api(
+        app,
+        version='1.0',
+        title='HBnB API',
+        description='HBnB Application API',
+        doc='/api/v1/'
+    )
 
     with app.app_context():
         from app.models.user import User
         from app.models.place import Place
         from app.models.review import Review
         from app.models.amenity import Amenity
-        
+
         db.create_all()
 
     api.add_namespace(users_ns, path='/api/v1/users')
