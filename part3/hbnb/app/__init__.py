@@ -8,14 +8,7 @@ from app.api.v1.places import api as places_ns
 from app.api.v1.reviews import api as reviews_ns
 from app.api.v1.auth import api as auth_ns
 
-api = Api(
-    version='1.0',
-    title='HBnB API',
-    description='HBnB Application API',
-    doc='/api/v1/'
-)
-
-def create_app(config_class=config.DevelopmentConfig):
+def create_app(config_class="config.DevelopmentConfig"):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -26,8 +19,8 @@ def create_app(config_class=config.DevelopmentConfig):
     @app.route('/')
     def index():
         return {"status": "success", "message": "Welcome to the HBnB API"}, 200
-    api.init_app(app)
 
+    # Define the 'api' variable HERE before using it
     api = Api(
         app,
         version='1.0',
@@ -44,6 +37,7 @@ def create_app(config_class=config.DevelopmentConfig):
 
         db.create_all()
 
+    # Now it is safe to use 'api' to add namespaces
     api.add_namespace(users_ns, path='/api/v1/users')
     api.add_namespace(amenities_ns, path='/api/v1/amenities')
     api.add_namespace(places_ns, path='/api/v1/places')
