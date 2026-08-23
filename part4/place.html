@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBnB - Place Details</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="images/favicon/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="images/favicon/favicon.svg">
+    <link rel="shortcut icon" href="images/favicon/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/favicon/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="MyWebSite">
+    <link rel="manifest" href="images/favicon/site.webmanifest">
+</head>
+<body>
+    <header>
+        <!-- logo class -->
+        <a href="index.html"><img src="images/logo.png" alt="HBnB Logo" class="logo"> </a>
+        <nav>
+            <a href="index.html">Home</a>
+            <!-- login-button class -->
+            <a href="login.html" id="login-link" class="login-button">Login</a>
+            <a href="#" id="logout-link" class="login-button">Logout</a>
+        </nav>
+    </header>
+    <main>
+        <!-- place-details class -->
+        <div id="place-details" class="place-details">
+            <!-- place-info class -->
+            <div class="place-info"></div>
+        </div>
+        <div id="reviews-section" class="review-card">
+            <section id="reviews">
+                <h1>Reviews</h1>
+                <div id="reviews-list"></div>
+            </section>
+            <section id="add-review">
+                <h2>Add a Review</h2>
+                <form id="review-form">
+                    <label for="review-text">Review:</label>
+                    <textarea id="review-text" name="review-text" required></textarea>
+                    
+                    <button type="submit">Submit</button>
+                </form>
+            </section>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2026 HBnB. All rights reserved.</p>
+    </footer>
+    
+    <script src="scripts.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Tiro Gurmukhi', 'Noto Sans Cham';
+}
+
+:root[data-theme="light"] {
+  --text: #0f0900;
+  --background: #e0d1a5;
+  --primary: #f98c1f;
+  --secondary: #befb74;
+  --accent: #74fa47;
+}
+:root[data-theme="dark"] {
+  --text: #fff9f0;
+  --background: #5b4c1f;
+  --primary: #e07306;
+  --secondary: #4e8b04;
+  --accent: #32b805;
+}
+
+
+
+.place-details, .review-card {
+    margin: 20px;
+    padding: 10px;
+}
+
+body {
+    background-color: #e0d1a5;
+    color: var(--text);
+}
+
+header {
+    background-color: var(--primary);
+    color: var(--text);
+    padding: 1rem;
+}
+
+nav a {
+    color: var(--text);
+    text-decoration: none;
+    margin-left: 1rem;
+}
+
+main {
+    padding: 2rem;
+}
