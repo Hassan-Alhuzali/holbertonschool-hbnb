@@ -15,26 +15,53 @@
 <body>
     <header>
         <!-- logo class -->
-        <a href="index.html"><img src="images/logo.png" alt="HBnB Logo" class="logo"> </a>
+        <a href="index.html"><img src="images/logo.png" alt="HBnB Logo" class="logo"></a>
         <nav>
             <a href="index.html">Home</a>
             <!-- login-button class -->
-            <a href="login.html" id="login-link" class="login-button">Login</a>
-            <a href="#" id="logout-link" class="login-button">Logout</a>
+            <a href="login.html" class="login-button">Login</a>
         </nav>
     </header>
     <main>
         <h1>Available Places</h1>
-        
+        <!-- filter-bar class -->
         <div class="filter-bar">
-            <label for="price-filter">Max Price:</label>
+            <label for="price-filter">Filter by Max Price:</label>
             <select id="price-filter">
-                <option value="10">10</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
+                <option value="10">&dollar;10</option>
+                <option value="50">&dollar;50</option>
+                <option value="100">&dollar;100</option>
                 <option value="All" selected>All</option>
             </select>
         </div>
+        <!-- places-list class -->
+        <section class="places-list" aria-label="Available places">
+            <!-- place-card class -->
+            <article class="place-card">
+                <h2>Seaside Retreat</h2>
+                <!-- price class -->
+                <p class="price">$95 <span>per night</span></p>
+                <p>Bright coastal apartment with a private balcony and sea views.</p>
+                <!-- details-button classes -->
+                <a class="details-button" href="place.html">View Details</a>
+            </article>
+            <!-- place-card class -->
+            <article class="place-card">
+                <h2>Old Town Studio</h2>
+                <!-- price class -->
+                <p class="price">$70 <span>per night</span></p>
+                <p>A quiet studio steps from cafés, galleries, and the city market.</p>
+                <a class="details-button" href="place.html">View Details</a>
+            </article>
+            <!-- place-card class -->
+            <article class="place-card">
+                <h2>Garden Guesthouse</h2>
+                <!-- price class -->
+                <p class="price">$100 <span>per night</span></p>
+                <p>Spacious guesthouse with a leafy garden and a comfortable workspace.</p>
+                <a class="details-button" href="place.html">View Details</a>
+            </article>
+        </section>
     </main>
     <footer>
         <p>&copy; 2026 HBnB. All rights reserved.</p>

@@ -15,35 +15,49 @@
 <body>
     <header>
         <!-- logo class -->
-        <a href="index.html"><img src="images/logo.png" alt="HBnB Logo" class="logo"> </a>
+        <a href="index.html"><img src="images/logo.png" alt="HBnB Logo" class="logo"></a>
         <nav>
             <a href="index.html">Home</a>
             <!-- login-button class -->
-            <a href="login.html" id="login-link" class="login-button">Login</a>
-            <a href="#" id="logout-link" class="login-button">Logout</a>
+            <a href="login.html" class="login-btn">Login</a>
         </nav>
     </header>
     <main>
         <!-- place-details class -->
-        <div id="place-details" class="place-details">
+        <section id="place-details" class="place-details">
             <!-- place-info class -->
-            <div class="place-info"></div>
-        </div>
-        <div id="reviews-section" class="review-card">
-            <section id="reviews">
-                <h1>Reviews</h1>
-                <div id="reviews-list"></div>
+            <div class="place-info">
+                <h1>Seaside Retreat</h1>
+                <!-- price class -->
+                <p class="price">$95 <span>per night</span></p>
+                <p><strong>Host:</strong> Maya Ahmed</p>
+                <p>Relax in this sunny apartment overlooking the coast. The home is a short walk from the beach, local restaurants, and public transport.</p>
+            </div>
+            <!-- amenities class -->
+            <section class="amenities" aria-labelledby="amenities-title">
+                <h2 id="amenities-title">Amenities</h2>
+                <ul>
+                    <li><img src="images/icon_bed.png" alt="">2 bedrooms</li>
+                    <li><img src="images/icon_bath.png" alt="">1 bathroom</li>
+                    <li><img src="images/icon_wifi.png" alt="">Fast Wi-Fi</li>
+                </ul>
             </section>
-            <section id="add-review">
-                <h2>Add a Review</h2>
-                <form id="review-form">
-                    <label for="review-text">Review:</label>
-                    <textarea id="review-text" name="review-text" required></textarea>
-                    
-                    <button type="submit">Submit</button>
-                </form>
-            </section>
-        </div>
+            <!-- details-button class -->
+            <a class="details-button" href="add_review.html">Add a Review</a>
+        </>
+        <!-- reviews-section class -->
+        <section class="reviews-section" aria-labelledby="reviews-title">
+            <h2 id="reviews-title">Reviews</h2>
+            <!-- review-card classes -->
+            <article class="review-card">
+                <h3>Jordan K. <span aria-label="5 out of 5 stars">★★★★★</span></h3>
+                <p>Wonderful location and exactly as pictured. We would happily stay again.</p>
+            </article>
+            <article class="review-card">
+                <h3>Leila M. <span aria-label="4 out of 5 stars">★★★★☆</span></h3>
+                <p>A clean, comfortable place with a lovely balcony and a helpful host.</p>
+            </article>
+        </section>
     </main>
     <footer>
         <p>&copy; 2026 HBnB. All rights reserved.</p>
