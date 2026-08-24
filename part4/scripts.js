@@ -1,5 +1,6 @@
 const API_BASE_URL = 'http://127.0.0.1:5000/api/v1';
 
+// Event listener for DOMContentLoaded to handle login form submission
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('login-form');
 
@@ -31,6 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+/*
+ * Function: createLoginErrorMessage
+ * Purpose: Creates or retrieves the error message element for the login form
+ * Parameters:
+ *   loginForm: The login form element
+ * Returns:
+ *   The error message element
+ */
+
 function createLoginErrorMessage(loginForm) {
   let errorMessage = document.getElementById('login-error');
 
@@ -45,6 +55,16 @@ function createLoginErrorMessage(loginForm) {
 
   return errorMessage;
 }
+
+/*
+ * Function: loginUser
+ * Purpose: Logs in the user by sending a POST request to the login endpoint
+ * Parameters:
+ *   email: The user's email
+ *   password: The user's password
+ * Returns:
+ *   The parsed JSON response from the server
+ */
 
 async function loginUser(email, password) {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -68,6 +88,15 @@ async function loginUser(email, password) {
   document.cookie = `token=${encodeURIComponent(data.access_token)}; path=/; SameSite=Lax`;
   window.location.href = 'index.html';
 }
+
+/*
+ * Function: handleLogin
+ * Purpose: Handles the login form submission, validates the input, and logs in the user
+ * Parameters:
+ *   event: The form submission event
+ * Returns:
+ *   The parsed JSON response from the server
+ */
 
 async function parseJsonResponse(response) {
   try {
