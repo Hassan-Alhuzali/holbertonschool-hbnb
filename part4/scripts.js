@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
       event.preventDefault();
       errorMessage.textContent = '';
 
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
       const submitButton = loginForm.querySelector('button[type="submit"]');
 
       if (submitButton) {
@@ -84,7 +84,8 @@ async function loginUser(email, password) {
   if (!data.access_token) {
     throw new Error('Login failed. The server did not return an access token.');
   }
-
+  // store token in localStorage and cookie
+  localStorage.setItem('token', data.access_token);
   document.cookie = `token=${encodeURIComponent(data.access_token)}; path=/; SameSite=Lax`;
   window.location.href = 'index.html';
 }
