@@ -146,7 +146,8 @@ function getCookie(name) {
 
 /*
  * Function: checkAuthentication
- * Purpose: Verifies user authentication based on JWT token and toggles UI elements accordingly
+ * Purpose: Checks if the user is authenticated by verifying the presence of a token
+ *          and updates the login link display accordingly
  */
 function checkAuthentication() {
   const token = getCookie('token');
@@ -164,7 +165,24 @@ function checkAuthentication() {
   if (placesList) {
     fetchPlaces(token);
   }
+
+  const placeDetailsSection = document.getElementById('place-details');
+  if (placeDetailsSection) {
+    const placeId = getPlaceIdFromURL();
+    if (placeId) {
+      const addReviewSection = document.getElementById('add-review');
+      if (addReviewSection) {
+        if (!token) {
+          addReviewSection.style.display = 'none';
+        } else {
+          addReviewSection.style.display = 'block';
+        }
+      }
+      fetchPlaceDetails(token, placeId);
+    }
+  }
 }
+
 
 /*
  * Function: fetchPlaces
@@ -234,4 +252,107 @@ function displayPlaces(places) {
 
     placesList.appendChild(article);
   });
+}
+
+/*
+ * Function: getPlaceIdFromURL
+ * Purpose: Extract the place ID from the query parameters
+ */
+function getPlaceIdFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('id');
+}
+
+/*
+ * Function: fetchPlaceDetails
+ * Purpose: Use the Fetch API to get the details of the place and handle the response
+ */
+async function fetchPlaceDetails(token, placeId) {
+  try {
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`; // Include the token in the Authorization header
+    }
+
+    const response = await fetch(`${API_BASE_URL}/places/${placeId}`, {
+      method: 'GET',
+      headers: headers
+    });
+
+    if (response.ok) {
+      const place = await response.json();
+      displayPlaceDetails(place);
+    } else {
+      console.error('Failed to fetch place details');
+    }
+  } catch (error) {
+    console.error('Error fetching place details:', error);
+  }
+}
+
+/*
+ * Function: displayPlaceDetails
+ * Purpose: Dynamically create HTML elements to display the place's detailed information
+ */
+function displayPlaceDetails(place) {
+  const placeDetails = document.getElementById('place-details');
+  if (!placeDetails) return;
+
+  placeDetails.innerHTML = ''; // Clear the current content
+
+  const placeInfoHtml = `
+    <div class="place-info">
+      <h1>${place.name || place.title || 'Name'}</h1>
+      <p class="price">$${place.price_by_night || place.price} <span>per night</span></p>
+      <p><strong>Host:</strong> ${place.host_name || 'Host'}</p>
+      <p>${place.description || ''}</p>
+    </div>
+  `;
+
+  let amenitiesHtml = `
+    <section class="amenities" aria-labelledby="amenities-title">
+      <h2 id="amenities-title">Amenities</h2>
+      <ul>
+  `;
+  if (place.amenities && place.amenities.length > 0) {
+    place.amenities.forEach(am => {
+      amenitiesHtml += `<li><img src="images/icon_wifi.png" alt="" onerror="this.style.display='none'">${am.name || am}</li>`;
+    });
+  } else {
+    amenitiesHtml += `<li>None</li>`;
+  }
+  amenitiesHtml += `</ul></section>`;
+
+  const addReviewBtnHTML = `<a id="add-review" class="details-button" href="add_review.html?place_id=${place.id}">Add a Review</a>`;
+
+  placeDetails.innerHTML = placeInfoHtml + amenitiesHtml + addReviewBtnHTML;
+
+  const token = getCookie('token');
+  const addReviewSection = document.getElementById('add-review');
+  if (addReviewSection) {
+    if (!token) {
+      addReviewSection.style.display = 'none';
+    } else {
+      addReviewSection.style.display = 'block';
+    }
+  }
+
+  const reviewsSection = document.querySelector('.reviews-section');
+  if (reviewsSection) {
+    reviewsSection.innerHTML = '<h2 id="reviews-title">Reviews</h2>';
+    if (place.reviews && place.reviews.length > 0) {
+      place.reviews.forEach(review => {
+        const rating = review.rating || 0;
+        const starsText = "★".repeat(rating) + "☆".repeat(5 - rating);
+        reviewsSection.innerHTML += `
+          <article class="review-card">
+            <h3>${review.user_name || review.author || 'User'} <span aria-label="${rating} out of 5 stars">${starsText}</span></h3>
+            <p>${review.text || review.comment || ''}</p>
+          </article>
+        `;
+      });
+    } else {
+      reviewsSection.innerHTML += `<p>No reviews yet.</p>`;
+    }
+  }
 }
