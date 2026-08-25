@@ -18,7 +18,7 @@
         <nav>
             <a href="index.html">Home</a>
             <!-- login-button class -->
-            <a href="login.html" class="login-button">Login</a>
+            <a href="login.html" class="login-button" id="login-link">Login</a>
         </nav>
     </header>
     <main>
@@ -34,9 +34,9 @@
             </select>
         </div>
         <!-- places-list class -->
-        <section class="places-list" aria-label="Available places">
+        <section class="places-list" id="places-list" aria-label="Available places">
             <!-- place-card class -->
-            <article class="place-card">
+            <article class="place-card" data-price="95">
                 <h2>Seaside Retreat</h2>
                 <!-- price class -->
                 <p class="price">$95 <span>per night</span></p>
@@ -45,7 +45,7 @@
                 <a class="details-button" href="place.html">View Details</a>
             </article>
             <!-- place-card class -->
-            <article class="place-card">
+            <article class="place-card" data-price="70">
                 <h2>Old Town Studio</h2>
                 <!-- price class -->
                 <p class="price">$70 <span>per night</span></p>
@@ -53,7 +53,7 @@
                 <a class="details-button" href="place.html">View Details</a>
             </article>
             <!-- place-card class -->
-            <article class="place-card">
+            <article class="place-card" data-price="100">
                 <h2>Garden Guesthouse</h2>
                 <!-- price class -->
                 <p class="price">$100 <span>per night</span></p>
